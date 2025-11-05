@@ -1,6 +1,11 @@
 {% extends "layout.html" %}
 {% block content %}
-<h1 class="h4 mb-3">{{ 'Edit Product' if item else 'New Product' }}</h1>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h4">{{ 'Edit Product' if item else 'New Product' }}</h1>
+  <!-- Return to Products Button -->
+  <a href="{{ url_for('main.products') }}" class="btn btn-outline-secondary">← Back to Products</a>
+</div>
 
 <form method="post" class="row g-3">
 
@@ -44,7 +49,7 @@
     <input class="form-control" name="supplier_name" value="{{ item.supplier_name if item else '' }}">
   </div>
 
-  <div class="col-12">
+  <div class="col-12 mt-3">
     <button class="btn btn-primary">Save</button>
     <a href="{{ url_for('main.products') }}" class="btn btn-secondary">Cancel</a>
   </div>
