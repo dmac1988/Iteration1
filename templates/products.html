@@ -6,8 +6,12 @@
 </div>
 
 <form class="row g-2 mb-3" method="get">
-  <div class="col-auto"><input class="form-control" name="q" placeholder="Search code/name" value="{{ q }}"></div>
-  <div class="col-auto"><button class="btn btn-outline-secondary">Search</button></div>
+  <div class="col-auto">
+    <input class="form-control" name="q" placeholder="Search code or name" value="{{ q }}">
+  </div>
+  <div class="col-auto">
+    <button class="btn btn-outline-secondary">Search</button>
+  </div>
 </form>
 
 <table class="table table-hover align-middle">
@@ -16,14 +20,15 @@
       <th>Code</th>
       <th>Name</th>
       <th>On Hand</th>
+      <th>Demand/Day</th>
+      <th>Lead Days</th>
       <th>ROP</th>
       <th></th>
     </tr>
   </thead>
   <tbody>
     {% for p in items %}
-      {% set m = p.compute_rop() %}
-      <tr class="{% if m.below %}table-warning{% endif %}">
+      <tr>
         <td>{{ p.product_code }}</td>
         <td>
           {{ p.name }}
@@ -31,10 +36,11 @@
             <div class="text-muted small">{{ p.description }}</div>
           {% endif %}
         </td>
-        <td>{{ p.current_stock|round }}</td>
-        <td><b>{{ m.ROP }}</b></td>
+        <td>{{ p.current_stock|round(2) }}</td>
+        <td>{{ p.demand_per_day|round(2) }}</td>
+        <td>{{ p.lead_days|round(2) }}</td>
+        <td><strong>{{ p.compute_rop() }}</strong></td>
         <td class="text-nowrap">
-          <a class="btn btn-sm btn-outline-primary" href="{{ url_for('main.stock_movements', pid=p.id) }}">Stock</a>
           <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('main.product_edit', pid=p.id) }}">Edit</a>
           <form method="post" action="{{ url_for('main.product_delete', pid=p.id) }}" class="d-inline" onsubmit="return confirm('Delete this product?');">
             <button class="btn btn-sm btn-outline-danger">Delete</button>
@@ -46,6 +52,6 @@
 </table>
 
 {% if not items %}
-<div class="alert alert-info">No products found. Click “New Product” to add one.</div>
+<div class="alert alert-info">No products yet. Click “New Product”.</div>
 {% endif %}
 {% endblock %}

@@ -5,6 +5,8 @@ from dotenv import load_dotenv
 
 db = SQLAlchemy()
 
+# Using env file to access the database ref: Lumary YT https://www.youtube.com/watch?v=XZ_gAWdGzZk, Postegresql.org
+# https://www.postgresql.org/docs/current/libpq-envars.html, https://www.youtube.com/shorts/RctRuV8hObw
 def create_app():
     load_dotenv()
     app = Flask(__name__, template_folder="templates")
@@ -12,25 +14,24 @@ def create_app():
     app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-    db.init_app(app)
+    db.init_app(app) # binds SQLAlchemy to Flask app
 
-    # Ensure models are registered
-    from models import Product, StockMovement  # noqa: F401
-
-    # Register blueprint
+    # Importing models so SQLAlchemy knows the tables, unused import problem https://stackoverflow.com/questions/
+    # 11957106/unused-import-warning-and-pylint
+    from models import Product  # noqa: F401
     from views import bp as main_bp
-    app.register_blueprint(main_bp)
+    app.register_blueprint(main_bp) # calls all models using one line
 
-    # Create tables if they don't exist
+    # create tables if they don't exist
     with app.app_context():
         db.create_all()
 
+# directs you to index page
     @app.route("/")
     def index():
         return redirect(url_for("main.products"))
 
     return app
-
 
 if __name__ == "__main__":
     app = create_app()
