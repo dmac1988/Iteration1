@@ -14,9 +14,9 @@ def create_app():
     app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-    db.init_app(app) # binds SQLAlchemy to Flask app
+    db.init_app(app) # connects SQLAlchemy to Flask app
 
-    # Importing models so SQLAlchemy knows the tables, unused import problem https://stackoverflow.com/questions/
+    # Importing models & bp so SQLAlchemy knows the tables, unused import problem https://stackoverflow.com/questions/
     # 11957106/unused-import-warning-and-pylint
     from models import Product  # noqa: F401
     from views import bp as main_bp
