@@ -18,3 +18,15 @@ class Product(db.Model):
         d = float(self.demand_per_day or 0.0)
         L = float(self.lead_days or 0.0)
         return round(d * L * 2.5, 2)
+
+class StockMovement(db.Model):
+    __tablename__ = "stock_movement"
+
+    id = db.Column(db.BigInteger, primary_key=True)
+    product_id = db.Column(db.BigInteger, db.ForeignKey("product.id", ondelete="CASCADE"), nullable=False)
+    movement_type = db.Column(db.String(16), nullable=False)
+    qty_change = db.Column(db.Float, nullable=False)
+    location = db.Column(db.String(160))
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+
+    product = db.relationship("Product", backref=db.backref("movements", lazy="dynamic", cascade="all, delete-orphan"))

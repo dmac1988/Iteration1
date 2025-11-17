@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from app import db
-from models import Product
+from models import Product, StockMovement
 
 bp = Blueprint("main", __name__) # allows for the calling of all models at once in app.py
 
@@ -14,7 +14,7 @@ def get_float(name, default=0.0):
     except Exception:
         return default
 
-# product route READ
+# product route READ is3312 project 2024
 
 @bp.route("/products")
 def products():
@@ -71,3 +71,45 @@ def product_delete(pid):
     db.session.commit()
     flash("Product deleted.", "warning")
     return redirect(url_for("main.products"))
+
+@bp.route("/products/<int:pid>/add_stock", methods=["POST"])
+def product_add_stock(pid):
+    p = Product.query.get_or_404(pid)
+    qty = get_float("qty", 0.0)
+
+    if qty <=0:
+        flash("Quantity must be greater than zero", "danger")
+        return redirect(url_for("main.product_edit", pid=pid))
+
+    p.current_stock = (p.current_stock or 0.0) + qty
+
+    m= StockMovement(product_id=pid, movement_type="Delivery", qty_change=qty)
+    db.session.add(m)
+    db.session.commit()
+    flash("Stock Updated", "Success")
+    return redirect(url_for("main.product_edit", pid=pid))
+
+@bp.route("/products/<int:pid>/issue_stock", methods=["POST"])
+def product_issue_stock(pid):
+    """Issue stock to a factory location from the product form."""
+    p = Product.query.get_or_404(pid)
+    qty = get_float("qty", 0.0)
+    location = get_str("location")
+
+    if qty <= 0:
+        flash("Quantity must be greater than zero.", "danger")
+        return redirect(url_for("main.product_edit", pid=pid))
+
+    if qty > (p.current_stock or 0.0):
+        flash("Not enough stock to issue.", "danger")
+        return redirect(url_for("main.product_edit", pid=pid))
+
+    # update stock
+    p.current_stock = (p.current_stock or 0.0) - qty
+
+    m = StockMovement(product_id=pid, movement_type="ISSUE", qty_change=-qty, location=location,)
+
+    db.session.add(m)
+    db.session.commit()
+    flash("Stock issued and updated.", "success")
+    return redirect(url_for("main.product_edit", pid=pid))

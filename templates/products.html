@@ -1,57 +1,73 @@
 {% extends "layout.html" %}
+{% block title %}Products{% endblock %}
+
 {% block content %}
-<div class="d-flex justify-content-between mb-3">
-  <h1 class="h4">Products</h1>
-  <a href="{{ url_for('main.product_new') }}" class="btn btn-primary">+ New Product</a>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">Products</h1>
+  <a href="{{ url_for('main.product_new') }}" class="btn btn-primary">New Product</a>
 </div>
 
-<form class="row g-2 mb-3" method="get">
-  <div class="col-auto">
-    <input class="form-control" name="q" placeholder="Search code or name" value="{{ q }}">
+<form method="get" action="{{ url_for('main.products') }}" class="row gy-2 gx-2 align-items-center mb-3">
+  <div class="col-sm-8 col-md-6">
+    <input type="search"
+           class="form-control"
+           name="q"
+           placeholder="Search by code or name…"
+           value="{{ q or '' }}">
   </div>
   <div class="col-auto">
-    <button class="btn btn-outline-secondary">Search</button>
+    <button class="btn btn-outline-secondary" type="submit">Search</button>
   </div>
+  {% if q %}
+  <div class="col-auto">
+    <a href="{{ url_for('main.products') }}" class="btn btn-link">Clear</a>
+  </div>
+  {% endif %}
 </form>
 
-<table class="table table-hover align-middle">
-  <thead>
-    <tr>
-      <th>Code</th>
-      <th>Name</th>
-      <th>On Hand</th>
-      <th>Demand/Day</th>
-      <th>Lead Days</th>
-      <th>ROP</th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for p in items %}
+<div class="table-responsive">
+  <table class="table table-sm table-hover align-middle">
+    <thead class="table-light">
+      <tr>
+        <th scope="col">Code</th>
+        <th scope="col">Name</th>
+        <th scope="col" style="min-width: 260px;">Description</th>
+        <th scope="col" class="text-end">Stock</th>
+        <th scope="col" class="text-end">Demand/Day</th>
+        <th scope="col" class="text-end">Lead Days</th>
+        <th scope="col" class="text-end">ROP</th>
+        <th scope="col" class="text-end">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in items %}
       <tr>
         <td>{{ p.product_code }}</td>
-        <td>
-          {{ p.name }}
-          {% if p.description %}
-            <div class="text-muted small">{{ p.description }}</div>
-          {% endif %}
-        </td>
-        <td>{{ p.current_stock|round(2) }}</td>
-        <td>{{ p.demand_per_day|round(2) }}</td>
-        <td>{{ p.lead_days|round(2) }}</td>
-        <td><strong>{{ p.compute_rop() }}</strong></td>
-        <td class="text-nowrap">
-          <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('main.product_edit', pid=p.id) }}">Edit</a>
-          <form method="post" action="{{ url_for('main.product_delete', pid=p.id) }}" class="d-inline" onsubmit="return confirm('Delete this product?');">
-            <button class="btn btn-sm btn-outline-danger">Delete</button>
-          </form>
+        <td>{{ p.name }}</td>
+        <td class="text-muted small">{{ p.description }}</td>
+        <td class="text-end">{{ p.current_stock }}</td>
+        <td class="text-end">{{ p.demand_per_day }}</td>
+        <td class="text-end">{{ p.lead_days }}</td>
+        <td class="text-end">{{ p.compute_rop() }}</td>
+        <td class="text-end">
+          <div class="btn-group btn-group-sm" role="group">
+            <a class="btn btn-outline-secondary" href="{{ url_for('main.product_edit', pid=p.id) }}">Edit</a>
+            <form method="post"
+                  action="{{ url_for('main.product_delete', pid=p.id) }}"
+                  class="d-inline"
+                  onsubmit="return confirm('Delete {{ p.name }}? This cannot be undone.');">
+              {{ csrf_token() if csrf_token is defined }}
+              <button type="submit" class="btn btn-outline-danger">Delete</button>
+            </form>
+          </div>
         </td>
       </tr>
-    {% endfor %}
-  </tbody>
-</table>
-
-{% if not items %}
-<div class="alert alert-info">No products yet. Click “New Product”.</div>
-{% endif %}
+      {% else %}
+      <tr>
+        <td colspan="8" class="text-center text-muted py-4">No products found.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endblock %}
