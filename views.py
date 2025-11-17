@@ -83,6 +83,11 @@ def product_add_stock(pid):
 
     p.current_stock = (p.current_stock or 0.0) + qty
 
+    rop = p.compute_rop()
+    if p.current_stock >= rop and p.notified_low:
+        p.notified_low = False
+
+
     m= StockMovement(product_id=pid, movement_type="Delivery", qty_change=qty)
     db.session.add(m)
     db.session.commit()
@@ -104,8 +109,15 @@ def product_issue_stock(pid):
         flash("Not enough stock to issue.", "danger")
         return redirect(url_for("main.product_edit", pid=pid))
 
-    # update stock
-    p.current_stock = (p.current_stock or 0.0) - qty
+    before_stock = p.current_stock or 0.0
+    p.current_stock = before_stock - qty
+    rop = p.compute_rop()
+
+    if p.current_stock < rop and not p.notified_low:
+        p.notified_low = True
+        flash(f"Warning: stock for {p.name} has fallen below re-order point ({rop}).""warning")
+
+
 
     m = StockMovement(product_id=pid, movement_type="ISSUE", qty_change=-qty, location=location,)
 

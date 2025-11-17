@@ -13,6 +13,8 @@ class Product(db.Model):
     demand_per_day = db.Column(db.Float, default=0.0)
     lead_days = db.Column(db.Float, default=0.0)
 
+    notified_low = db.Column(db.Boolean, default=False)
+
     # ROP = demand_per_day * lead_days * 2.5  (includes 1.5x safety stock)
     def compute_rop(self):
         d = float(self.demand_per_day or 0.0)
