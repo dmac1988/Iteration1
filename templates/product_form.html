@@ -1,92 +1,64 @@
 {% extends "layout.html" %}
-
-{% block title %}
-  {{ 'Edit' if item else 'New' }} Product
-{% endblock %}
+{% block title %}{{ 'Edit' if item else 'New' }} Product{% endblock %}
 
 {% block content %}
+
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h1 class="h3 mb-0">{{ 'Edit' if item else 'New' }} Product</h1>
   <a href="{{ url_for('main.products') }}" class="btn btn-outline-secondary">Back</a>
 </div>
 
-<form method="post"
-      action="{{ url_for('main.product_edit', pid=item.id) if item else url_for('main.product_new') }}">
-  {% if csrf_token is defined %}
-    {{ csrf_token() }}
-  {% endif %}
+<form method="post" action="{{ url_for('main.product_edit', pid=item.id) if item else url_for('main.product_new') }}">
+  {% if csrf_token is defined %}{{ csrf_token() }}{% endif %}
 
   <div class="row g-3">
+
     <div class="col-md-4">
       <label for="product_code" class="form-label">Product Code</label>
-      <input type="text"
-             class="form-control"
-             id="product_code"
-             name="product_code"
-             value="{% if item %}{{ item.product_code }}{% else %}{{ request.form.get('product_code','') }}{% endif %}"
-             required maxlength="64">
+      <input type="text" class="form-control" id="product_code" name="product_code"
+             value="{{ item.product_code if item else '' }}" required maxlength="64">
     </div>
 
     <div class="col-md-8">
       <label for="name" class="form-label">Name</label>
-      <input type="text"
-             class="form-control"
-             id="name"
-             name="name"
-             value{% if item %}="{{ item.name }}"{% else %}="{{ request.form.get('name','') }}"{% endif %}
-             required maxlength="160">
+      <input type="text" class="form-control" id="name" name="name"
+             value="{{ item.name if item else '' }}" required maxlength="160">
     </div>
 
     <div class="col-12">
       <label for="description" class="form-label">Description</label>
-      <textarea class="form-control"
-                id="description"
-                name="description"
-                rows="3"
-                maxlength="1000">{% if item %}{{ item.description or '' }}{% else %}{{ request.form.get('description','') }}{% endif %}</textarea>
+      <textarea class="form-control" id="description" name="description" rows="3"
+                maxlength="1000">{{ item.description if item else '' }}</textarea>
     </div>
 
     <div class="col-md-3">
       <label for="current_stock" class="form-label">Current Stock</label>
-      <input type="number"
-             class="form-control"
-             id="current_stock"
-             name="current_stock"
-             step="1" min="0"
-             value="{% if item %}{{ item.current_stock }}{% else %}{{ request.form.get('current_stock','') }}{% endif %}"
-             required>
+      <input type="number" class="form-control" id="current_stock" name="current_stock"
+             step="0.01" min="0"
+             value="{{ item.current_stock if item else 0 }}" required>
     </div>
 
     <div class="col-md-3">
       <label for="demand_per_day" class="form-label">Demand / Day</label>
-      <input type="number"
-             class="form-control"
-             id="demand_per_day"
-             name="demand_per_day"
+      <input type="number" class="form-control" id="demand_per_day" name="demand_per_day"
              step="0.01" min="0"
-             value="{% if item %}{{ item.demand_per_day }}{% else %}{{ request.form.get('demand_per_day','') }}{% endif %}"
-             required>
+             value="{{ item.demand_per_day if item else 0 }}" required>
     </div>
 
     <div class="col-md-3">
       <label for="lead_days" class="form-label">Lead Time (days)</label>
-      <input type="number"
-             class="form-control"
-             id="lead_days"
-             name="lead_days"
+      <input type="number" class="form-control" id="lead_days" name="lead_days"
              step="1" min="0"
-             value="{% if item %}{{ item.lead_days }}{% else %}{{ request.form.get('lead_days','') }}{% endif %}"
-             required>
+             value="{{ item.lead_days if item else 0 }}" required>
     </div>
 
     <div class="col-md-3">
       <label class="form-label">Computed ROP</label>
-      <input type="text"
-             class="form-control"
-             value="{% if item %}{{ item.compute_rop() }}{% endif %}"
-             disabled>
-      <div class="form-text">ROP = demand/day × lead days × 2.5 (safety)</div>
+      <input type="text" class="form-control"
+             value="{{ item.compute_rop() if item else '' }}" disabled>
+      <div class="form-text">ROP = demand × lead days × 2.5 (safety factor)</div>
     </div>
+
   </div>
 
   <div class="d-flex gap-2 mt-4">
@@ -98,55 +70,45 @@
 {% if item %}
 <hr class="my-4">
 
-<h2 class="h5 mb-3">Stock Movements</h2>
-<p class="mb-3">
-  Current stock for <strong>{{ item.name }}</strong>:
-  <span class="badge bg-secondary">{{ item.current_stock }}</span>
-</p>
+<!-- ADD STOCK SECTION -->
+<h4>Add Stock (Delivery)</h4>
 
-<div class="row g-3">
-  <!-- Add stock (delivery) -->
-  <div class="col-md-6">
-    <div class="card">
-      <div class="card-body">
-        <h3 class="h6">Add Stock (Delivery)</h3>
-        <form method="post" action="{{ url_for('main.product_add_stock', pid=item.id) }}">
-          {% if csrf_token is defined %}
-            {{ csrf_token() }}
-          {% endif %}
-          <div class="mb-3">
-            <label class="form-label">Quantity to add</label>
-            <input type="number" name="qty" step="0.01" min="0" class="form-control" required>
-          </div>
-          <button type="submit" class="btn btn-success btn-sm">Add Stock</button>
-        </form>
-      </div>
-    </div>
+<form method="post" action="{{ url_for('main.product_add_stock', pid=item.id) }}" class="row gy-2 gx-3 align-items-end">
+  {% if csrf_token is defined %}{{ csrf_token() }}{% endif %}
+
+  <div class="col-md-3">
+    <label class="form-label">Quantity to Add</label>
+    <input type="number" name="qty" step="0.01" min="0" class="form-control" required>
   </div>
 
-  <!-- Issue stock -->
-  <div class="col-md-6">
-    <div class="card">
-      <div class="card-body">
-        <h3 class="h6">Issue Stock to Location</h3>
-        <form method="post" action="{{ url_for('main.product_issue_stock', pid=item.id) }}">
-          {% if csrf_token is defined %}
-            {{ csrf_token() }}
-          {% endif %}
-          <div class="mb-3">
-            <label class="form-label">Quantity to issue</label>
-            <input type="number" name="qty" step="0.01" min="0" class="form-control" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Location</label>
-            <input type="text" name="location" class="form-control"
-                   placeholder="e.g. Cutting Room, Packing Line 2" required>
-          </div>
-          <button type="submit" class="btn btn-warning btn-sm">Issue Stock</button>
-        </form>
-      </div>
-    </div>
+  <div class="col-md-3">
+    <button type="submit" class="btn btn-success w-100">Add Stock</button>
   </div>
-</div>
+</form>
+
+<hr class="my-4">
+
+<!-- ISSUE STOCK SECTION -->
+<h4>Issue Stock (Send to Location)</h4>
+
+<form method="post" action="{{ url_for('main.product_issue_stock', pid=item.id) }}" class="row gy-2 gx-3 align-items-end">
+  {% if csrf_token is defined %}{{ csrf_token() }}{% endif %}
+
+  <div class="col-md-3">
+    <label class="form-label">Quantity to Issue</label>
+    <input type="number" name="qty" step="0.01" min="0" class="form-control" required>
+  </div>
+
+  <div class="col-md-4">
+    <label class="form-label">Location</label>
+    <input type="text" name="location" class="form-control" placeholder="Cutting Room, Packing Line…" required>
+  </div>
+
+  <div class="col-md-3">
+    <button type="submit" class="btn btn-warning w-100">Issue Stock</button>
+  </div>
+</form>
+
 {% endif %}
+
 {% endblock %}

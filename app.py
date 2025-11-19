@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 db = SQLAlchemy()
 
-# Using env file to access the database ref: Lumary YT https://www.youtube.com/watch?v=XZ_gAWdGzZk, Postegresql.org
+# DB setup and maintenance - Lumary YT https://www.youtube.com/watch?v=XZ_gAWdGzZk, Postegresql.org
 # https://www.postgresql.org/docs/current/libpq-envars.html, https://www.youtube.com/shorts/RctRuV8hObw maintenance -
 # ChatGPT - See documentation for conversation
 def create_app():

@@ -41,14 +41,23 @@
     </thead>
     <tbody>
       {% for p in items %}
-      <tr>
+      {% set below_rop = (p.current_stock is not none) and (p.current_stock < p.compute_rop()) %}
+
+      <tr class="{% if below_rop %}table-danger{% endif %}">
         <td>{{ p.product_code }}</td>
         <td>{{ p.name }}</td>
         <td class="text-muted small">{{ p.description }}</td>
         <td class="text-end">{{ p.current_stock }}</td>
         <td class="text-end">{{ p.demand_per_day }}</td>
         <td class="text-end">{{ p.lead_days }}</td>
-        <td class="text-end">{{ p.compute_rop() }}</td>
+
+        <td class="text-end">
+          {{ p.compute_rop() }}
+          {% if below_rop %}
+            <span class="badge bg-danger ms-1">Low</span>
+          {% endif %}
+        </td>
+
         <td class="text-end">
           <div class="btn-group btn-group-sm" role="group">
             <a class="btn btn-outline-secondary" href="{{ url_for('main.product_edit', pid=p.id) }}">Edit</a>

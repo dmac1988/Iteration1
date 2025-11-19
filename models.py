@@ -13,7 +13,7 @@ class Product(db.Model):
     demand_per_day = db.Column(db.Float, default=0.0)
     lead_days = db.Column(db.Float, default=0.0)
 
-    notified_low = db.Column(db.Boolean, default=False)
+    notified_low = db.Column(db.Boolean, default=False) # ChatGPT - conversation available on documentation
 
     # ROP = demand_per_day * lead_days * 2.5  (includes 1.5x safety stock)
     def compute_rop(self):

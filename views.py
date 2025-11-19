@@ -94,32 +94,54 @@ def product_add_stock(pid):
     flash("Stock Updated", "Success")
     return redirect(url_for("main.product_edit", pid=pid))
 
+# issue stock issues resolved by ChatGPT
 @bp.route("/products/<int:pid>/issue_stock", methods=["POST"])
 def product_issue_stock(pid):
     """Issue stock to a factory location from the product form."""
     p = Product.query.get_or_404(pid)
+
+    # read form values
     qty = get_float("qty", 0.0)
     location = get_str("location")
 
+    # validation: qty must be > 0
     if qty <= 0:
         flash("Quantity must be greater than zero.", "danger")
         return redirect(url_for("main.product_edit", pid=pid))
 
+    # validation: cannot issue more than current stock
     if qty > (p.current_stock or 0.0):
         flash("Not enough stock to issue.", "danger")
         return redirect(url_for("main.product_edit", pid=pid))
 
+    # update current stock
     before_stock = p.current_stock or 0.0
     p.current_stock = before_stock - qty
-    rop = p.compute_rop()
 
-    if p.current_stock < rop and not p.notified_low:
-        p.notified_low = True
-        flash(f"Warning: stock for {p.name} has fallen below re-order point ({rop}).""warning")
+    # record stock movement
+    m = StockMovement(product_id=pid, movement_type="ISSUE", qty_change=-qty, location=location)
+
+    db.session.add(m)
+    db.session.commit()
+
+    flash("Stock issued and updated.", "success")
+    return redirect(url_for("main.product_edit", pid=pid))
 
 
+@bp.route("/low-stock-dashboard")
+def low_stock_dashboard():
+    products = Product.query.order_by(Product.name.asc()).all()
+    rows = []
+    for p in products:
+        rop = p.compute_rop()
+        current = float(p.current_stock or 0.0)
+        threshold = rop + (rop * 0.125)
 
-    m = StockMovement(product_id=pid, movement_type="ISSUE", qty_change=-qty, location=location,)
+        if current <= threshold:
+            rows.append({"product": p, "current": current, "rop": rop, "threshold": threshold, "below_rop": current < rop})
+
+    return render_template("low_stock_dashboard.html", rows=rows)
+
 
     db.session.add(m)
     db.session.commit()
