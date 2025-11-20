@@ -1,3 +1,4 @@
+<!-- Chat GPT generated front end -->
 {% extends "layout.html" %}
 {% block title %}{{ 'Edit' if item else 'New' }} Product{% endblock %}
 
@@ -70,7 +71,6 @@
 {% if item %}
 <hr class="my-4">
 
-<!-- ADD STOCK SECTION -->
 <h4>Add Stock (Delivery)</h4>
 
 <form method="post" action="{{ url_for('main.product_add_stock', pid=item.id) }}" class="row gy-2 gx-3 align-items-end">
@@ -88,7 +88,7 @@
 
 <hr class="my-4">
 
-<!-- ISSUE STOCK SECTION -->
+<!-- ChatGPT resolved issues and help with frontend-->
 <h4>Issue Stock (Send to Location)</h4>
 
 <form method="post" action="{{ url_for('main.product_issue_stock', pid=item.id) }}" class="row gy-2 gx-3 align-items-end">
@@ -101,7 +101,7 @@
 
   <div class="col-md-4">
     <label class="form-label">Location</label>
-    <input type="text" name="location" class="form-control" placeholder="Cutting Room, Packing Line…" required>
+    <input type="text" name="location" class="form-control" placeholder="Boning Hall, Abbattoir" required>
   </div>
 
   <div class="col-md-3">
@@ -110,5 +110,6 @@
 </form>
 
 {% endif %}
+<div class="mb-5"></div>
 
 {% endblock %}

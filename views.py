@@ -71,7 +71,7 @@ def product_delete(pid):
     db.session.commit()
     flash("Product deleted.", "warning")
     return redirect(url_for("main.products"))
-
+# ChatGPT - see documentation for conversation
 @bp.route("/products/<int:pid>/add_stock", methods=["POST"])
 def product_add_stock(pid):
     p = Product.query.get_or_404(pid)
@@ -117,6 +117,10 @@ def product_issue_stock(pid):
     # update current stock
     before_stock = p.current_stock or 0.0
     p.current_stock = before_stock - qty
+
+    rop = p.compute_rop()
+    if p.current_stock< rop:
+        flash(f"Warning: stock for {p.name} is below ROP. "f"Current stock: {p.current_stock}.")
 
     # record stock movement
     m = StockMovement(product_id=pid, movement_type="ISSUE", qty_change=-qty, location=location)
