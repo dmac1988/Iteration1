@@ -14,7 +14,7 @@ def get_float(name, default=0.0):
     except Exception:
         return default
 
-# product route READ is3312 project 2024
+# product route READ is3312 project 2024, Chat GPT
 
 @bp.route("/products")
 def products():

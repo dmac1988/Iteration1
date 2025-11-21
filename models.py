@@ -31,5 +31,5 @@ class StockMovement(db.Model):
     location = db.Column(db.String(160))
     created_at = db.Column(db.DateTime, server_default=db.func.now())
 
-# ChatGPT recommendation
+# Chat GPT recomendation
     product = db.relationship("Product", backref=db.backref("movements", lazy="dynamic", cascade="all, delete-orphan"))
