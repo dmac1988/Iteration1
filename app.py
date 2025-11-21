@@ -21,7 +21,7 @@ def create_app():
     # 11957106/unused-import-warning-and-pylint
     from models import Product  # noqa: F401
     from views import bp as main_bp
-    app.register_blueprint(main_bp) # calls all models using one line
+    app.register_blueprint(main_bp) # calls all models using one line https://flask.palletsprojects.com/en/stable/
 
     # create tables if they don't exist
     with app.app_context():
