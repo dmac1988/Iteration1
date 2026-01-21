@@ -53,11 +53,19 @@
         <td class="text-end">{{ p.lead_days }}</td>
 
         <td class="text-end">
-          {{ p.compute_rop() }}
-          {% if below_rop %}
-            <span class="badge bg-danger ms-1">Low</span>
-          {% endif %}
-        </td>
+  {{ p.compute_rop() }}
+
+  {% if p.current_stock < p.compute_rop() %}
+    <span class="badge bg-danger ms-1">Low</span>
+
+  {% elif p.current_stock <= p.compute_rop() * 1.125 %}
+    <span class="badge bg-warning text-dark ms-1">Near</span>
+
+  {% else %}
+    <span class="badge bg-success ms-1">✓</span>
+  {% endif %}
+</td>
+
 
         <td class="text-end">
           <div class="btn-group btn-group-sm" role="group">

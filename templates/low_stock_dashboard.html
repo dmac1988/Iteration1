@@ -3,7 +3,7 @@
 {% block title %}Low Stock Dashboard{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3"> <!-- Bootstrap -->
+<div class="d-flex justify-content-between align-items-center mb-3">
   <h1 class="h3 mb-0">Low Stock Dashboard</h1>
   <a href="{{ url_for('main.products') }}" class="btn btn-outline-secondary">Back to Products</a>
 </div>
@@ -23,6 +23,8 @@
         <th class="text-end">Current Stock</th>
         <th class="text-end">ROP</th>
         <th class="text-end">Threshold</th>
+        <th class="text-end">Max Stock</th>
+        <th class="text-end">Suggested Order</th>
         <th>Status</th>
         <th class="text-end">Actions</th>
       </tr>
@@ -35,6 +37,8 @@
       {% set rop = row.rop %}
       {% set threshold = row.threshold %}
       {% set below_rop = row.below_rop %}
+      {% set max_stock = row.max_stock %}
+      {% set suggested_order = row.suggested_order %}
 
       <tr class="
           {% if below_rop %}
@@ -47,9 +51,12 @@
         <td>{{ p.name }}</td>
         <td class="text-muted small">{{ p.description }}</td>
 
-        <td class="text-end">{{ current }}</td>
-        <td class="text-end">{{ rop }}</td>
+        <td class="text-end">{{ current | round(2) }}</td>
+        <td class="text-end">{{ rop | round(2) }}</td>
         <td class="text-end">{{ threshold | round(2) }}</td>
+
+        <td class="text-end">{{ max_stock | round(2) }}</td>
+        <td class="text-end">{{ suggested_order | round(2) }}</td>
 
         <td>
           {% if below_rop %}
@@ -64,7 +71,7 @@
         <td class="text-end">
           <a class="btn btn-sm btn-outline-primary"
              href="{{ url_for('main.product_edit', pid=p.id) }}">
-            View / Edit
+            Edit
           </a>
         </td>
       </tr>

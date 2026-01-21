@@ -2,11 +2,12 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from app import db
 from models import Product, StockMovement
 
-bp = Blueprint("main", __name__) # allows for the calling of all models at once in app.py
+bp = Blueprint("main", __name__)  # allows for the calling of all models at once in app.py
 
 # getting string data from forms
 def get_str(name, default=""):
     return (request.form.get(name, default) or "").strip()
+
 # getting numerical data from forms
 def get_float(name, default=0.0):
     try:
@@ -14,7 +15,6 @@ def get_float(name, default=0.0):
     except Exception:
         return default
 
-# product route READ is3312 project 2024, Chat GPT
 
 @bp.route("/products")
 def products():
@@ -25,6 +25,7 @@ def products():
         query = query.filter((Product.product_code.ilike(like)) | (Product.name.ilike(like)))
     items = query.order_by(Product.name.asc()).all()
     return render_template("products.html", items=items, q=q)
+
 
 # Create a new product CREATE
 @bp.route("/products/new", methods=["GET", "POST"])
@@ -37,15 +38,17 @@ def product_new():
             current_stock=get_float("current_stock"),
             demand_per_day=get_float("demand_per_day"),
             lead_days=get_float("lead_days"),
+            max_stock=get_float("max_stock")
         )
         if not p.product_code or not p.name:
-            flash("Product Code and Name are required.", "danger") # validating the new product
+            flash("Product Code and Name are required.", "danger")  # validating the new product
             return redirect(url_for("main.product_new"))
         db.session.add(p)
         db.session.commit()
         flash("Product created.", "success")
         return redirect(url_for("main.products"))
     return render_template("product_form.html", item=None)
+
 
 # Edit products UPDATE
 @bp.route("/products/<int:pid>/edit", methods=["GET", "POST"])
@@ -58,10 +61,12 @@ def product_edit(pid):
         p.current_stock = get_float("current_stock", p.current_stock)
         p.demand_per_day = get_float("demand_per_day", p.demand_per_day)
         p.lead_days = get_float("lead_days", p.lead_days)
+        p.max_stock = get_float("max_stock", p.max_stock)  # <<< NEW
         db.session.commit()
         flash("Product updated.", "success")
         return redirect(url_for("main.products"))
     return render_template("product_form.html", item=p)
+
 
 # Delete Products DELETE
 @bp.route("/products/<int:pid>/delete", methods=["POST"])
@@ -71,13 +76,14 @@ def product_delete(pid):
     db.session.commit()
     flash("Product deleted.", "warning")
     return redirect(url_for("main.products"))
-# ChatGPT - see documentation for conversation
+
+
 @bp.route("/products/<int:pid>/add_stock", methods=["POST"])
 def product_add_stock(pid):
     p = Product.query.get_or_404(pid)
     qty = get_float("qty", 0.0)
 
-    if qty <=0:
+    if qty <= 0:
         flash("Quantity must be greater than zero", "danger")
         return redirect(url_for("main.product_edit", pid=pid))
 
@@ -87,17 +93,15 @@ def product_add_stock(pid):
     if p.current_stock >= rop and p.notified_low:
         p.notified_low = False
 
-
-    m= StockMovement(product_id=pid, movement_type="Delivery", qty_change=qty)
+    m = StockMovement(product_id=pid, movement_type="Delivery", qty_change=qty)
     db.session.add(m)
     db.session.commit()
-    flash("Stock Updated", "Success")
+    flash("Stock Updated", "success")
     return redirect(url_for("main.product_edit", pid=pid))
 
-# issue stock issues resolved by ChatGPT
+
 @bp.route("/products/<int:pid>/issue_stock", methods=["POST"])
 def product_issue_stock(pid):
-    """Issue stock to a factory location from the product form."""
     p = Product.query.get_or_404(pid)
 
     # read form values
@@ -119,8 +123,8 @@ def product_issue_stock(pid):
     p.current_stock = before_stock - qty
 
     rop = p.compute_rop()
-    if p.current_stock< rop:
-        flash(f"Warning: stock for {p.name} is below ROP. "f"Current stock: {p.current_stock}.")
+    if p.current_stock < rop:
+        flash(f"Warning: stock for {p.name} is below ROP. " f"Current stock: {p.current_stock}.")
 
     # record stock movement
     m = StockMovement(product_id=pid, movement_type="ISSUE", qty_change=-qty, location=location)
@@ -142,12 +146,16 @@ def low_stock_dashboard():
         threshold = rop + (rop * 0.125)
 
         if current <= threshold:
-            rows.append({"product": p, "current": current, "rop": rop, "threshold": threshold, "below_rop": current < rop})
+            max_level = float(p.max_stock or 0.0)
+            suggested = p.suggested_order_qty()
+            rows.append({
+                "product": p,
+                "current": current,
+                "rop": rop,
+                "threshold": threshold,
+                "below_rop": current < rop,
+                "max_stock": max_level,
+                "suggested_order": suggested
+            })
 
     return render_template("low_stock_dashboard.html", rows=rows)
-
-
-    db.session.add(m)
-    db.session.commit()
-    flash("Stock issued and updated.", "success")
-    return redirect(url_for("main.product_edit", pid=pid))
