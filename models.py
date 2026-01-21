@@ -12,6 +12,7 @@ class Product(db.Model):
     current_stock = db.Column(db.Float, default=0.0)
     demand_per_day = db.Column(db.Float, default=0.0)
     lead_days = db.Column(db.Float, default=0.0)
+    max_stock = db.Column(db.Float, default=0.0)
 
     notified_low = db.Column(db.Boolean, default=False) # ChatGPT - conversation available on documentation
 
@@ -20,6 +21,16 @@ class Product(db.Model):
         d = float(self.demand_per_day or 0.0)
         L = float(self.lead_days or 0.0)
         return round(d * L * 2.5, 2)
+
+    def suggested_order_qty(self):
+        current = float(self.current_stock or 0.0)
+        max_level = float(self.max_stock or 0.0)
+
+        if max_level <= 0:
+            return 0.0
+        qty = max_level - current
+        return round(qty if qty > 0 else 0.0, 2)
+
 
 class StockMovement(db.Model):
     __tablename__ = "stock_movement"
